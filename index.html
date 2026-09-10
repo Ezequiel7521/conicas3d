@@ -3,23 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Estação 1: Seções Cônicas em RA Didática</title>
+  <title>Estação 1: Seções Cônicas em RA</title>
+
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
   <style>
-    /* Estilização da interface de botões sobreposta à câmera */
-    #ui-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 90%; max-width: 600px; }
-    .btn-conica { background-color: rgba(15, 23, 42, 0.85); color: #ffffff; border: 2px solid #38bdf8; padding: 12px 20px; border-radius: 8px; font-family: sans-serif; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
-    .btn-conica:active { background-color: #38bdf8; color: #000000; transform: scale(0.95); }
-    #info-card { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; background: rgba(15, 23, 42, 0.85); color: #f8fafc; padding: 16px 24px; border-radius: 8px; font-family: sans-serif; text-align: center; border: 1px solid #334155; width: 80%; max-width: 450px; }
-    #info-title { font-weight: bold; color: #38bdf8; font-size: 1.2em; margin-bottom: 6px; }
+    #ui-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    .btn-conica {
+      background-color: rgba(15, 23, 42, 0.9);
+      color: #ffffff;
+      border: 2px solid #38bdf8;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-family: sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-conica:active {
+      background-color: #38bdf8;
+      color: #000;
+    }
+
+    #info-card {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: rgba(15, 23, 42, 0.9);
+      color: #f8fafc;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: sans-serif;
+      text-align: center;
+      border: 1px solid #334155;
+      width: 80%;
+      max-width: 400px;
+    }
+
+    #info-title {
+      font-weight: bold;
+      color: #38bdf8;
+      margin-bottom: 4px;
+    }
   </style>
 </head>
+
 <body style="margin: 0; overflow: hidden;">
+
   <div id="info-card">
     <div id="info-title">Corte: Circunferência</div>
-    <div id="info-desc">O plano de corte é perpendicular ao eixo do cone ($\alpha = 90^\circ$).</div>
+    <div id="info-desc">O plano corta o cone perpendicularmente ao eixo central.</div>
   </div>
+
   <div id="ui-container">
     <button class="btn-conica" onclick="mudarCorte('circulo')">Circunferência</button>
     <button class="btn-conica" onclick="mudarCorte('elipse')">Elipse</button>
@@ -28,56 +80,100 @@
   </div>
 
   <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" vr-mode-ui="enabled: false">
-    <!-- Assets (Carregar o modelo GLB) -->
-    <a-assets>
-      <a-asset-item id="modeloCorte" src="conica_didatica.glb"></a-asset-item>
-    </a-assets>
 
-    <!-- Marcador HIRO (Padrão) -->
     <a-marker preset="hiro">
-      <!-- Grupo Central com o Modelo Didático -->
-      <a-entity id="cena-conicas" position="0 0.5 0" scale="0.1 0.1 0.1" rotation="-90 0 0">
-        <!-- O Modelo Didático é Carregado Aqui -->
-        <a-gltf-model src="#modeloCorte"></a-gltf-model>
+
+      <a-entity id="cena-conicas" position="0 0.8 0" scale="0.6 0.6 0.6">
+
+        <!-- CONE SUPERIOR: Ponta virada para BAIXO no ponto (0,0,0) -->
+        <a-cone position="0 0.75 0" rotation="0 0 0" 
+                radius-bottom="0.8" radius-top="0" height="1.5"
+                material="color: #0284c7; opacity: 0.4; transparent: true; side: double">
+        </a-cone>
+
+        <!-- CONE INFERIOR: Ponta virada para CIMA no ponto (0,0,0) -->
+        <a-cone position="0 -0.75 0" rotation="180 0 0" 
+                radius-bottom="0.8" radius-top="0" height="1.5"
+                material="color: #0284c7; opacity: 0.4; transparent: true; side: double">
+        </a-cone>
+
+        <!-- EIXO VERTICAL CENTRAL -->
+        <a-cylinder position="0 0 0" radius="0.008" height="3.2" material="color: #ffffff; opacity: 0.8"></a-cylinder>
+
+        <!-- PLANO DE CORTE -->
+        <a-entity id="plano-corte" position="0 0.75 0" rotation="0 0 0">
+          <a-plane width="2.2" height="2.2"
+                   material="color: #ef4444; opacity: 0.75; transparent: true; side: double">
+          </a-plane>
+
+          <!-- DESTAQUE DA CURVA DE CORTE -->
+          <a-ring id="curva-destaque" radius-inner="0.38" radius-outer="0.43" 
+                  material="color: #facc15; shader: flat; side: double" rotation="90 0 0" position="0 0 0.01">
+          </a-ring>
+        </a-entity>
+
       </a-entity>
+
     </a-marker>
+
     <a-entity camera></a-entity>
+
   </a-scene>
 
   <script>
-    const cena = document.getElementById('cena-conicas');
+    const plano = document.getElementById('plano-corte');
+    const curva = document.getElementById('curva-destaque');
     const infoTitle = document.getElementById('info-title');
     const infoDesc = document.getElementById('info-desc');
 
     function mudarCorte(tipo) {
       switch (tipo) {
         case 'circulo':
-          // Plano horizontal, altura específica
-          cena.setAttribute('animation', 'property: rotation; to: -90 0 0; dur: 800; easing: easeInOutCubic');
-          cena.setAttribute('animation__pos', 'property: position; to: 0 0.5 0; dur: 800; easing: easeInOutCubic');
+          plano.setAttribute('animation', 'property: rotation; to: 0 0 0; dur: 600; easing: easeInOutQuad');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0.75 0; dur: 600; easing: easeInOutQuad');
+          
+          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.38, radiusOuter: 0.43 });
+          curva.setAttribute('position', '0 0 0.01');
+          curva.setAttribute('rotation', '90 0 0');
+
           infoTitle.innerText = "Corte: Circunferência";
-          infoDesc.innerText = "O plano corta o cone perpendicularmente ao seu eixo principal. A interseção é um círculo perfeito.";
+          infoDesc.innerText = "O plano de corte é perpendicular ao eixo central do cone.";
           break;
+
         case 'elipse':
-          // Plano inclinado, corta apenas uma folha
-          cena.setAttribute('animation', 'property: rotation; to: -65 0 0; dur: 800; easing: easeInOutCubic');
-          cena.setAttribute('animation__pos', 'property: position; to: 0 0.4 0; dur: 800; easing: easeInOutCubic');
+          plano.setAttribute('animation', 'property: rotation; to: 30 0 0; dur: 600; easing: easeInOutQuad');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0.6 0; dur: 600; easing: easeInOutQuad');
+          
+          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.32, radiusOuter: 0.37 });
+          curva.setAttribute('position', '0 0 0.01');
+          curva.setAttribute('rotation', '90 0 0');
+
           infoTitle.innerText = "Corte: Elipse";
-          infoDesc.innerText = "O plano corta apenas uma folha do cone, sem ser paralelo a nenhuma geratriz. Forma uma curva oval.";
+          infoDesc.innerText = "O plano é inclinado e corta apenas uma das folhas do cone por completo.";
           break;
+
         case 'parabola':
-          // Plano paralelo a uma geratriz, corta apenas uma folha
-          cena.setAttribute('animation', 'property: rotation; to: -37 0 0; dur: 800; easing: easeInOutCubic');
-          cena.setAttribute('animation__pos', 'property: position; to: 0 0.3 0.1; dur: 800; easing: easeInOutCubic');
+          plano.setAttribute('animation', 'property: rotation; to: 47 0 0; dur: 600; easing: easeInOutQuad');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0.4 0.1; dur: 600; easing: easeInOutQuad');
+          
+          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.25, radiusOuter: 0.30 });
+          curva.setAttribute('position', '0 -0.2 0.01');
+          curva.setAttribute('rotation', '90 0 0');
+
           infoTitle.innerText = "Corte: Parábola";
-          infoDesc.innerText = "O plano de corte é paralelo a uma das retas geratrizes do cone. Forma uma curva aberta infinita.";
+          infoDesc.innerText = "O plano de corte é paralelo à geratriz do cone.";
           break;
+
         case 'hiperbole':
-          // Plano vertical, corta as duas folhas
-          cena.setAttribute('animation', 'property: rotation; to: 0 0 0; dur: 800; easing: easeInOutCubic');
-          cena.setAttribute('animation__pos', 'property: position; to: 0 0.1 0.3; dur: 800; easing: easeInOutCubic');
+          plano.setAttribute('animation', 'property: rotation; to: 90 0 0; dur: 600; easing: easeInOutQuad');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0 0.3; dur: 600; easing: easeInOutQuad');
+          
+          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.22, radiusOuter: 0.27 });
+          curva.setAttribute('position', '0 0 0.01');
+          curva.setAttribute('rotation', '0 0 0');
+
           infoTitle.innerText = "Corte: Hipérbole";
-          infoDesc.innerText = "O plano é paralelo ao eixo do cone e intersecta ambas as folhas do cone duplo. Forma dois ramos opostos.";
+          infoDesc.innerText = "O plano é paralelo ao eixo e intersecta ambas as folhas do cone duplo.";
           break;
       }
     }
