@@ -18,8 +18,8 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 10px;
-      width: 90%;
+      gap: 8px;
+      width: 95%;
       max-width: 500px;
     }
 
@@ -27,10 +27,10 @@
       background-color: rgba(15, 23, 42, 0.9);
       color: #ffffff;
       border: 2px solid #38bdf8;
-      padding: 10px 16px;
+      padding: 10px 14px;
       border-radius: 8px;
       font-family: sans-serif;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
       cursor: pointer;
     }
@@ -42,25 +42,31 @@
 
     #info-card {
       position: fixed;
-      top: 20px;
+      top: 15px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 9999;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.92);
       color: #f8fafc;
-      padding: 12px 20px;
+      padding: 12px 18px;
       border-radius: 8px;
       font-family: sans-serif;
       text-align: center;
       border: 1px solid #334155;
-      width: 80%;
-      max-width: 400px;
+      width: 85%;
+      max-width: 420px;
     }
 
     #info-title {
       font-weight: bold;
       color: #38bdf8;
+      font-size: 1.1em;
       margin-bottom: 4px;
+    }
+    
+    #info-desc {
+      font-size: 0.9em;
+      line-height: 1.3;
     }
   </style>
 </head>
@@ -69,7 +75,7 @@
 
   <div id="info-card">
     <div id="info-title">Corte: Circunferência</div>
-    <div id="info-desc">O plano corta o cone perpendicularmente ao eixo central.</div>
+    <div id="info-desc">O plano corta o cone de forma perpendicular ao eixo central.</div>
   </div>
 
   <div id="ui-container">
@@ -83,33 +89,46 @@
 
     <a-marker preset="hiro">
 
-      <a-entity id="cena-conicas" position="0 0.8 0" scale="0.6 0.6 0.6">
+      <!-- Grupo Principal rotacionado para o cone ficar "em pé" em relação ao observador -->
+      <a-entity id="cena-conicas" position="0 0.8 0" rotation="0 0 0" scale="0.6 0.6 0.6">
 
-        <!-- CONE SUPERIOR: Ponta no centro (0,0,0) apontando para baixo -->
-        <a-cone position="0 0.75 0" rotation="0 0 0" 
-                radius-bottom="0.8" radius-top="0" height="1.5"
+        <!-- CONE SUPERIOR: Vértice no centro (0,0,0) -->
+        <a-cone position="0 0.8 0" rotation="180 0 0" 
+                radius-bottom="0.8" radius-top="0" height="1.6"
                 material="color: #0284c7; opacity: 0.45; transparent: true; side: double">
         </a-cone>
 
-        <!-- CONE INFERIOR: Ponta no centro (0,0,0) apontando para cima -->
-        <a-cone position="0 -0.75 0" rotation="180 0 0" 
-                radius-bottom="0.8" radius-top="0" height="1.5"
+        <!-- CONE INFERIOR: Vértice no centro (0,0,0) -->
+        <a-cone position="0 -0.8 0" rotation="0 0 0" 
+                radius-bottom="0.8" radius-top="0" height="1.6"
                 material="color: #0284c7; opacity: 0.45; transparent: true; side: double">
         </a-cone>
 
-        <!-- EIXO VERTICAL CENTRAL -->
-        <a-cylinder position="0 0 0" radius="0.008" height="3.2" material="color: #ffffff; opacity: 0.8"></a-cylinder>
+        <!-- EIXO CENTRAL (LINHA BRANCA) -->
+        <a-cylinder position="0 0 0" radius="0.008" height="3.5" material="color: #ffffff"></a-cylinder>
 
         <!-- PLANO DE CORTE -->
-        <a-entity id="plano-corte" position="0 0.75 0" rotation="0 0 0">
-          <a-plane width="2.2" height="2.2"
-                   material="color: #ef4444; opacity: 0.75; transparent: true; side: double">
+        <a-entity id="plano-corte" position="0 0.8 0" rotation="0 0 0">
+          <a-plane width="2.0" height="2.0"
+                   material="color: #ef4444; opacity: 0.65; transparent: true; side: double">
           </a-plane>
 
-          <!-- DESTAQUE DA CURVA DE CORTE -->
-          <a-ring id="curva-destaque" radius-inner="0.38" radius-outer="0.43" 
+          <!-- DESTAQUE 1: Anel / Curva para Círculo, Elipse e Parábola -->
+          <a-ring id="curva-destaque" radius-inner="0.38" radius-outer="0.44" 
                   material="color: #facc15; shader: flat; side: double" rotation="90 0 0" position="0 0 0.01">
           </a-ring>
+
+          <!-- DESTAQUE 2: Ramos da Hipérbole (Aparecem só na Hipérbole) -->
+          <a-entity id="ramos-hiperbole" visible="false">
+            <!-- Ramo Superior -->
+            <a-ring radius-inner="0.25" radius-outer="0.32" theta-length="180" theta-start="0"
+                    material="color: #facc15; shader: flat; side: double" position="0 0.8 0.02" rotation="0 0 180">
+            </a-ring>
+            <!-- Ramo Inferior -->
+            <a-ring radius-inner="0.25" radius-outer="0.32" theta-length="180" theta-start="0"
+                    material="color: #facc15; shader: flat; side: double" position="0 -0.8 0.02" rotation="0 0 0">
+            </a-ring>
+          </a-entity>
         </a-entity>
 
       </a-entity>
@@ -123,57 +142,66 @@
   <script>
     const plano = document.getElementById('plano-corte');
     const curva = document.getElementById('curva-destaque');
+    const ramosHiperbole = document.getElementById('ramos-hiperbole');
     const infoTitle = document.getElementById('info-title');
     const infoDesc = document.getElementById('info-desc');
 
     function mudarCorte(tipo) {
+      // Oculta os ramos por padrão e mostra o anel padrão
+      ramosHiperbole.setAttribute('visible', 'false');
+      curva.setAttribute('visible', 'true');
+
       switch (tipo) {
         case 'circulo':
+          // Plano horizontal cortando o cone superior
           plano.setAttribute('animation', 'property: rotation; to: 0 0 0; dur: 600; easing: easeInOutQuad');
-          plano.setAttribute('animation__pos', 'property: position; to: 0 0.75 0; dur: 600; easing: easeInOutQuad');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0.8 0; dur: 600; easing: easeInOutQuad');
           
-          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.38, radiusOuter: 0.43 });
+          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.38, radiusOuter: 0.44 });
           curva.setAttribute('position', '0 0 0.01');
           curva.setAttribute('rotation', '90 0 0');
 
           infoTitle.innerText = "Corte: Circunferência";
-          infoDesc.innerText = "O plano de corte é perpendicular ao eixo central do cone.";
+          infoDesc.innerText = "O plano de corte é perpendicular ao eixo central. A interseção forma um círculo perfeito.";
           break;
 
         case 'elipse':
-          plano.setAttribute('animation', 'property: rotation; to: 30 0 0; dur: 600; easing: easeInOutQuad');
-          plano.setAttribute('animation__pos', 'property: position; to: 0 0.6 0; dur: 600; easing: easeInOutQuad');
+          // Plano inclinado sem cortar a base
+          plano.setAttribute('animation', 'property: rotation; to: 28 0 0; dur: 600; easing: easeInOutQuad');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0.7 0; dur: 600; easing: easeInOutQuad');
           
-          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.32, radiusOuter: 0.37 });
+          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.30, radiusOuter: 0.36 });
           curva.setAttribute('position', '0 0 0.01');
           curva.setAttribute('rotation', '90 0 0');
 
           infoTitle.innerText = "Corte: Elipse";
-          infoDesc.innerText = "O plano é inclinado e corta apenas uma das folhas do cone por completo.";
+          infoDesc.innerText = "O plano é inclinado e corta apenas uma folha do cone por completo, formando uma curva fechada oval.";
           break;
 
         case 'parabola':
-          plano.setAttribute('animation', 'property: rotation; to: 47 0 0; dur: 600; easing: easeInOutQuad');
-          plano.setAttribute('animation__pos', 'property: position; to: 0 0.4 0.1; dur: 600; easing: easeInOutQuad');
+          // Plano paralelo à geratriz
+          plano.setAttribute('animation', 'property: rotation; to: 50 0 0; dur: 600; easing: easeInOutQuad');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0.5 0.15; dur: 600; easing: easeInOutQuad');
           
-          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.25, radiusOuter: 0.30 });
-          curva.setAttribute('position', '0 -0.2 0.01');
+          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.22, radiusOuter: 0.28 });
+          curva.setAttribute('position', '0 -0.15 0.01');
           curva.setAttribute('rotation', '90 0 0');
 
           infoTitle.innerText = "Corte: Parábola";
-          infoDesc.innerText = "O plano de corte é paralelo à geratriz do cone.";
+          infoDesc.innerText = "O plano de corte é paralelo à geratriz do cone, gerando uma curva aberta em forma de 'U'.";
           break;
 
         case 'hiperbole':
+          // PLANO VERTICAL: Corta as duas folhas (superior e inferior) ao mesmo tempo
           plano.setAttribute('animation', 'property: rotation; to: 90 0 0; dur: 600; easing: easeInOutQuad');
-          plano.setAttribute('animation__pos', 'property: position; to: 0 0 0.3; dur: 600; easing: easeInOutQuad');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0 0.35; dur: 600; easing: easeInOutQuad');
           
-          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.22, radiusOuter: 0.27 });
-          curva.setAttribute('position', '0 0 0.01');
-          curva.setAttribute('rotation', '0 0 0');
+          // Esconde o anel simples e ativa os dois ramos curvos amarelo-brilhantes
+          curva.setAttribute('visible', 'false');
+          ramosHiperbole.setAttribute('visible', 'true');
 
           infoTitle.innerText = "Corte: Hipérbole";
-          infoDesc.innerText = "O plano é paralelo ao eixo e intersecta ambas as folhas do cone duplo.";
+          infoDesc.innerText = "O plano é paralelo ao eixo central e intersecta as DUAS folhas do cone, criando dois ramos simétricos e opostos.";
           break;
       }
     }
