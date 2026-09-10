@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Estação 1: Seções Cônicas em RA</title>
+
+  <!-- A-Frame Library -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <!-- AR.js Library para A-Frame -->
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    /* Estilização da interface de botões sobreposta à câmera */
+    #ui-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    .btn-conica {
+      background-color: rgba(15, 23, 42, 0.85);
+      color: #ffffff;
+      border: 2px solid #38bdf8;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-family: sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s ease;
+    }
+
+    .btn-conica:active {
+      background-color: #38bdf8;
+      color: #000000;
+      transform: scale(0.95);
+    }
+
+    #info-card {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: rgba(15, 23, 42, 0.85);
+      color: #f8fafc;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: sans-serif;
+      text-align: center;
+      border: 1px solid #334155;
+      width: 80%;
+      max-width: 400px;
+    }
+
+    #info-title {
+      font-weight: bold;
+      color: #38bdf8;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+
+  <!-- Interface do Usuário (Overlay 2D) -->
+  <div id="info-card">
+    <div id="info-title">Corte: Circunferência</div>
+    <div id="info-desc">O plano de corte é perpendicular ao eixo do cone ($\alpha = 90^\circ$).</div>
+  </div>
+
+  <div id="ui-container">
+    <button class="btn-conica" onclick="mudarCorte('circulo')">Circunferência</button>
+    <button class="btn-conica" onclick="mudarCorte('elipse')">Elipse</button>
+    <button class="btn-conica" onclick="mudarCorte('parabola')">Parábola</button>
+    <button class="btn-conica" onclick="mudarCorte('hiperbole')">Hipérbole</button>
+  </div>
+
+  <!-- Cena 3D / Realidade Aumentada -->
+  <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" vr-mode-ui="enabled: false">
+
+    <!-- Marcador HIRO (Padrão) -->
+    <a-marker preset="hiro">
+
+      <!-- Grupo Central das Figuras Geométricas -->
+      <a-entity id="cena-conicas" position="0 0.5 0" scale="0.8 0.8 0.8">
+
+        <!-- Cone Superior (Semi-transparente) -->
+        <a-cone position="0 0.75 0" radius-bottom="1" radius-top="0" height="1.5"
+                material="color: #64748b; opacity: 0.45; transparent: true; side: double">
+        </a-cone>
+
+        <!-- Cone Inferior (Invertido / Cone Duplo) -->
+        <a-cone position="0 -0.75 0" radius-bottom="0" radius-top="1" height="1.5"
+                material="color: #64748b; opacity: 0.45; transparent: true; side: double">
+        </a-cone>
+
+        <!-- Eixo Central do Cone -->
+        <a-cylinder position="0 0 0" radius="0.01" height="3.2" material="color: #ffffff; opacity: 0.6"></a-cylinder>
+
+        <!-- Plano de Corte Interativo -->
+        <a-entity id="plano-corte" position="0 0.5 0" rotation="0 0 0">
+          <!-- Superfície do Plano -->
+          <a-plane width="2.2" height="2.2"
+                   material="color: #ef4444; opacity: 0.6; transparent: true; side: double">
+          </a-plane>
+          
+          <!-- Borda Iluminada que Destaca a Curva de Interseção -->
+          <a-ring id="curva-destaque" radius-inner="0.65" radius-outer="0.69" 
+                  material="color: #facc15; shader: flat; side: double" rotation="90 0 0">
+          </a-ring>
+        </a-entity>
+
+      </a-entity>
+
+    </a-marker>
+
+    <!-- Câmera da Cena -->
+    <a-entity camera></a-entity>
+
+  </a-scene>
+
+  <!-- Lógica JavaScript para Alternar os Cortes -->
+  <script>
+    const plano = document.getElementById('plano-corte');
+    const curva = document.getElementById('curva-destaque');
+    const infoTitle = document.getElementById('info-title');
+    const infoDesc = document.getElementById('info-desc');
+
+    function mudarCorte(tipo) {
+      switch (tipo) {
+        case 'circulo':
+          // Plano Perpendicular ao Eixo (Ângulo = 0 em relação à horizontal)
+          plano.setAttribute('animation', 'property: rotation; to: 0 0 0; dur: 800; easing: easeInOutCubic');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0.5 0; dur: 800; easing: easeInOutCubic');
+          
+          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.65, radiusOuter: 0.70 });
+          curva.setAttribute('position', '0 0 0.01');
+          curva.setAttribute('rotation', '0 0 0');
+
+          infoTitle.innerText = "Corte: Circunferência";
+          infoDesc.innerText = "O plano corta o cone perpendicularmente ao seu eixo principal.";
+          break;
+
+        case 'elipse':
+          // Plano Inclinado sem interceptar a base
+          plano.setAttribute('animation', 'property: rotation; to: 25 0 0; dur: 800; easing: easeInOutCubic');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0.4 0; dur: 800; easing: easeInOutCubic');
+          
+          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.55, radiusOuter: 0.60 });
+          curva.setAttribute('position', '0 0 0.01');
+          curva.setAttribute('rotation', '0 0 0');
+
+          infoTitle.innerText = "Corte: Elipse";
+          infoDesc.innerText = "O plano é inclinado em relação ao eixo, cortando todas as geratrizes de um único gerador.";
+          break;
+
+        case 'parabola':
+          // Plano Paralelo a uma das geratrizes do cone (Inclinado ~53 graus)
+          plano.setAttribute('animation', 'property: rotation; to: 53 0 0; dur: 800; easing: easeInOutCubic');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0.2 0.2; dur: 800; easing: easeInOutCubic');
+          
+          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.45, radiusOuter: 0.50 });
+          curva.setAttribute('position', '0 -0.2 0.01');
+
+          infoTitle.innerText = "Corte: Parábola";
+          infoDesc.innerText = "O plano de corte é paralelo a uma das retas geratrizes da superfície cônica.";
+          break;
+
+        case 'hiperbole':
+          // Plano Vertical (Paralelo ao eixo central, cortando ambas as folhas do cone)
+          plano.setAttribute('animation', 'property: rotation; to: 90 0 0; dur: 800; easing: easeInOutCubic');
+          plano.setAttribute('animation__pos', 'property: position; to: 0 0 0.4; dur: 800; easing: easeInOutCubic');
+          
+          curva.setAttribute('geometry', { primitive: 'ring', radiusInner: 0.40, radiusOuter: 0.45 });
+          curva.setAttribute('position', '0 0 0.01');
+
+          infoTitle.innerText = "Corte: Hipérbole";
+          infoDesc.innerText = "O plano é paralelo ao eixo do cone e intersecta ambas as folhas do cone duplo.";
+          break;
+      }
+    }
+  </script>
+</body>
+</html>
